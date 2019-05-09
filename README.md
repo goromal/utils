@@ -1,6 +1,6 @@
 # Utils
 
-Common C++ utilities.
+Header-only library with common C++ utilities.
 
 To include in your project, add the following lines to your *CMakeLists.txt* file:
 

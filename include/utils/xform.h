@@ -155,6 +155,11 @@ public:
     return out;
   }
 
+  Xform relativeTo(const Xform &other)
+  {
+    return Xform::Identity().boxplus(boxminus(other));
+  }
+
   static Xform Random()
   {
     Xform out;

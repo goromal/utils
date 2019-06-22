@@ -12,7 +12,7 @@ using namespace Eigen;
 using namespace quat;
 
 
-namespace transform
+namespace transforms
 {
 
 template <typename T>
@@ -270,4 +270,4 @@ inline std::ostream& operator<< (std::ostream& os, const Xform<T>& X)
 
 typedef Xform<double> Xformd;
 
-} // end namespace transform
+} // end namespace transforms

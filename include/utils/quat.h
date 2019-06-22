@@ -7,7 +7,7 @@
 
 using namespace Eigen;
 
-namespace quat {
+namespace transforms {
 
 static const Matrix<double,3,2> I_3x2 = [] {
   Matrix<double,3,2> tmp;
@@ -469,4 +469,4 @@ inline std::ostream& operator<< (std::ostream& os, const Quat<T>& q)
 
 typedef Quat<double> Quatd;
 
-}
+} // end namespace transforms

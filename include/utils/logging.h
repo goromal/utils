@@ -6,6 +6,8 @@
 #include <iostream>
 #include <Eigen/Core>
 
+using namespace Eigen;
+
 namespace logging {
 
 void stdVectorToLog(const std::string &filename, std::vector<double> &data)

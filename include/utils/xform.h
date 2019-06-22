@@ -5,8 +5,8 @@
 #include <math.h>
 #include <iostream>
 
-#include "transforms/support.h"
-#include "transforms/quat.h"
+#include "utils/support.h"
+#include "utils/quat.h"
 
 using namespace Eigen;
 using namespace quat;

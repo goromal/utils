@@ -10,7 +10,7 @@
 
 using namespace Eigen;
 using namespace quat;
-
+using namespace utils;
 
 namespace transforms
 {

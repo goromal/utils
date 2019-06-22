@@ -4,6 +4,8 @@
 
 #include <Eigen/Core>
 
+namespace utils {
+
 typedef Eigen::Matrix<double, 5, 1> Vector5d;
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
 typedef Eigen::Matrix<double, 7, 1> Vector7d;
@@ -126,3 +128,5 @@ inline T random(T max, T min)
   T f = (T)rand() / RAND_MAX;
   return min + f * (max - min);
 }
+
+} // end namespace utils

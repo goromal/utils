@@ -174,7 +174,7 @@ public:
       Mat3 wx = Quat<T>::skew(omega);
       T B = ((T)1. - cos(th)) / (th * th);
       T C = (th - sin(th)) / (th * th * th);
-      return Xform((I_3x3 + B*wx + C*wx*wx).transpose() * u, q_exp);
+      return Xform((utils::I_3x3 + B*wx + C*wx*wx).transpose() * u, q_exp);
     }
     else
     {
@@ -193,7 +193,7 @@ public:
       Mat3 wx = Quat<T>::skew(omega);
       T A = sin(th)/th;
       T B = ((T)1. - cos(th)) / (th * th);
-      Mat3 V = I_3x3 - (1./2.)*wx + (1./(th*th)) * (1.-(A/(2.*B)))*(wx* wx);
+      Mat3 V = utils::I_3x3 - (1./2.)*wx + (1./(th*th)) * (1.-(A/(2.*B)))*(wx* wx);
       u.template block<3,1>(0,0) = V.transpose() * X.t_;
     }
     else

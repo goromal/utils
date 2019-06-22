@@ -10,7 +10,7 @@ using namespace Eigen;
 
 namespace logging {
 
-void stdVectorToLog(const std::string &filename, std::vector<double> &data)
+inline void stdVectorToLog(const std::string &filename, std::vector<double> &data)
 {
   std::ofstream f(filename);
   for (int i = 0; i < data.size(); i++)
@@ -20,7 +20,7 @@ void stdVectorToLog(const std::string &filename, std::vector<double> &data)
   f.close();
 }
 
-void matrixToLog(const std::string &filename, MatrixXd &matrix)
+inline void matrixToLog(const std::string &filename, MatrixXd &matrix)
 {
   std::ofstream f(filename);
   int numRows = matrix.rows();
@@ -32,7 +32,7 @@ void matrixToLog(const std::string &filename, MatrixXd &matrix)
   f.close();
 }
 
-int logToStdVector(const std::string &filename, std::vector<double> &data)
+inline int logToStdVector(const std::string &filename, std::vector<double> &data)
 {
   std::ifstream f(filename);
   double read;
@@ -50,7 +50,7 @@ int logToStdVector(const std::string &filename, std::vector<double> &data)
   return size;
 }
 
-void logToMatrix(const std::string &filename, MatrixXd &matrix, int rowSize)
+inline void logToMatrix(const std::string &filename, MatrixXd &matrix, int rowSize)
 {
   std::vector<double> data;
   int size = logToStdVector(filename, data);

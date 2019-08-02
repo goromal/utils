@@ -114,7 +114,7 @@ public:
     q_ = Quat<T>(v.template segment<4>(3));
   }
 
-  Xform operator+ (const Vec6& v)
+  Xform operator+ (const Vec6& v) const
   {
     return boxplus(v);
   }
@@ -141,10 +141,11 @@ public:
   Mat4 Mat() const
   {
     Mat4 out;
-    out.block<3,3>(0,0) = q_.R();
-    out.block<3,1>(0,3) = t_;
-    out.block<1,3>(3,0) = Matrix<T,1,3>::Zero();
+    out.template block<3,3>(0,0) = q_.R();
+    out.template block<3,1>(0,3) = t_;
+    out.template block<1,3>(3,0) = Matrix<T,1,3>::Zero();
     out(3,3) = 1.0;
+    return out;
   }
 
   static Xform Identity()

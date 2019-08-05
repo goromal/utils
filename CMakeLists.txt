@@ -22,4 +22,3 @@ target_include_directories(utils
   ${EIGEN3_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
 )
-# target_link_libraries(utils ${YAML_CPP_LIBRARIES})

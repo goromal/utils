@@ -12,6 +12,7 @@
 #include <boost/algorithm/string.hpp>
 #include <Eigen/Core>
 #include <yaml-cpp/yaml.h>
+#include <vector>
 
 namespace utils {
 
@@ -270,5 +271,101 @@ inline T random(T max, T min)
   T f = (T)rand() / RAND_MAX;
   return min + f * (max - min);
 }
+
+template <typename T>
+class dirtyDerivative
+{
+private:
+  double sigma_;
+  bool initialized;
+  T deriv_curr_;
+  T deriv_prev_;
+  T val_prev_;
+public:
+  dirtyDerivative(void) : sigma_(0.05)
+  {
+    resetCalculator();
+  }
+  dirtyDerivative(const double sigma)
+  {
+    sigma_ = sigma;
+    resetCalculator();
+  }
+  void resetCalculator()
+  {
+    deriv_curr_ = (T) 0.0;
+    deriv_prev_ = (T) 0.0;
+    val_prev_ = (T) 0.0;
+    initialized = false;
+  }
+  T calculate(const T &val, const double Ts)
+  {
+    if (initialized)
+    {
+      deriv_curr_ = (2 * sigma_ - Ts) / (2 * sigma_ + Ts) * deriv_prev_ +
+                    2 / (2 * sigma_ + Ts) * (val - val_prev_);
+      deriv_prev_ = deriv_curr_;
+      val_prev_ = val;
+    }
+    else
+    {
+      deriv_curr_ = (T) 0.0;
+      deriv_prev_ = deriv_curr_;
+      val_prev_ = val;
+      initialized = true;
+    }
+    return deriv_curr_;
+  }
+};
+typedef dirtyDerivative<double> dirtyDerivatived;
+
+template <typename T>
+class dirtyDerivativeMat
+{
+private:
+  typedef Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MatXT;
+  std::vector<std::vector<dirtyDerivative<T>>> derivatives;
+  MatXT ddirs_;
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  dirtyDerivativeMat(void)
+  {
+    for (int i = 0; i < 2; i++)
+    {
+      std::vector<dirtyDerivative<T>> row;
+      derivatives.push_back(row);
+      for (int j = 0; j < 1; j++)
+      {
+        derivatives[i].push_back(dirtyDerivative<T>());
+      }
+    }
+    ddirs_ = MatXT::Zero(2, 1);
+  }
+  dirtyDerivativeMat(const MatXT &sigmas)
+  {
+    for (int i = 0; i < sigmas.rows(); i++)
+    {
+      std::vector<dirtyDerivative<T>> row;
+      derivatives.push_back(row);
+      for (int j = 0; j < sigmas.cols(); j++)
+      {
+        derivatives[i].push_back(dirtyDerivative<T>(sigmas(i, j)));
+      }
+    }
+    ddirs_ = MatXT::Zero(sigmas.rows(), sigmas.cols());
+  }
+  MatXT calculate(const MatXT &val, const double Ts)
+  {
+    for (int i = 0; i < val.rows(); i++)
+    {
+      for (int j = 0; j <val.cols(); j++)
+      {
+        ddirs_(i, j) = derivatives[i][j].calculate(val(i, j), Ts);
+      }
+    }
+    return ddirs_;
+  }
+};
+typedef dirtyDerivativeMat<double> dirtyDerivativeMatd;
 
 } // end namespace utils

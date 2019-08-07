@@ -14,6 +14,8 @@
 #include <yaml-cpp/yaml.h>
 #include <vector>
 
+#define UTILS_PI 3.141592653589793
+
 namespace utils {
 
 typedef Eigen::Matrix<double, 5, 1> Vector5d;
@@ -367,5 +369,20 @@ public:
   }
 };
 typedef dirtyDerivativeMat<double> dirtyDerivativeMatd;
+
+template<typename T>
+inline T wrap_angle_npi2pi(T theta)
+{
+  T ret_theta = theta;
+  if (theta > UTILS_PI)
+  {
+    ret_theta -= 2 * UTILS_PI;
+  }
+  else if (theta <= -UTILS_PI)
+  {
+    ret_theta += 2 * UTILS_PI;
+  }
+  return ret_theta;
+}
 
 } // end namespace utils

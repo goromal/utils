@@ -10,9 +10,14 @@ using namespace Eigen;
 
 namespace logging {
 
-inline void stdVectorToLog(const std::string &filename, std::vector<double> &data)
+inline void stdVectorToLog(const std::string &filename, std::vector<double> &data, bool append=false)
 {
-  std::ofstream f(filename);
+  std::ofstream f;
+  if (append)
+    f.open(filename, std::ios_base::app);
+  else
+    f.open(filename);
+  //  std::ofstream f(filename);
   for (int i = 0; i < data.size(); i++)
   {
     f.write((char *) &data[i], sizeof(double));
@@ -20,9 +25,14 @@ inline void stdVectorToLog(const std::string &filename, std::vector<double> &dat
   f.close();
 }
 
-inline void matrixToLog(const std::string &filename, MatrixXd &matrix)
+inline void matrixToLog(const std::string &filename, MatrixXd &matrix, bool append=false)
 {
-  std::ofstream f(filename);
+  std::ofstream f;
+  if (append)
+    f.open(filename, std::ios_base::app);
+  else
+    f.open(filename);
+//  std::ofstream f(filename);
   int numRows = matrix.rows();
   int numCols = matrix.cols();
   for (int i = 0; i < numCols; i++)

@@ -138,11 +138,23 @@ public:
     return out;
   }
 
-  Mat4 Mat() const
+  // Mat4 Mat() const // just wrong... this is trying to make the inverse of what the
+  //                  // default, passive matrix should be, but even then it messed up
+  //                  // the rotation, which would be q_.R().transpose()
+  // {
+  //   Mat4 out;
+  //   out.template block<3,3>(0,0) = q_.R();
+  //   out.template block<3,1>(0,3) = t_;
+  //   out.template block<1,3>(3,0) = Matrix<T,1,3>::Zero();
+  //   out(3,3) = 1.0;
+  //   return out;
+  // }
+
+  Mat4 H() const
   {
     Mat4 out;
     out.template block<3,3>(0,0) = q_.R();
-    out.template block<3,1>(0,3) = t_;
+    out.template block<3,1>(0,3) = -q_.R() * t_;
     out.template block<1,3>(3,0) = Matrix<T,1,3>::Zero();
     out(3,3) = 1.0;
     return out;

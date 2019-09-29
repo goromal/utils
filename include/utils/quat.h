@@ -15,6 +15,18 @@ static const Matrix<double,3,2> I_3x2 = [] {
   return tmp;
 }();
 
+static const Vector3d e1 = [] {
+  Vector3d tmp;
+  tmp << 1, 0, 0;
+  return tmp;
+}();
+
+static const Vector3d e2 = [] {
+  Vector3d tmp;
+  tmp << 0, 1, 0;
+  return tmp;
+}();
+
 static const Vector3d e3 = [] {
   Vector3d tmp;
   tmp << 0, 0, 1;

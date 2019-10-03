@@ -275,6 +275,90 @@ inline T random(T max, T min)
 }
 
 template <typename T>
+class digitalIntegral
+{
+private:
+    bool initialized_;
+    T integral_;
+    T val_prev_;
+public:
+    digitalIntegral(void)
+    {
+        integral_ = (T) 0.0;
+        resetCalculator();
+    }
+    digitalIntegral(const T x0)
+    {
+        integral_ = x0;
+        resetCalculator();
+    }
+    void resetCalculator()
+    {
+        initialized_ = false;
+        val_prev_ = (T) 0.0;
+    }
+    T calculate(const T &val, const double Ts)
+    {
+        if (initialized_)
+            integral_ += Ts / 2.0 * (val_prev_ + val);
+        else
+            initialized_ = true;
+        val_prev_ = val;
+        return integral_;
+    }
+};
+typedef digitalIntegral<double> digitalIntegrald;
+
+template <typename T>
+class digitalIntegralMat
+{
+private:
+  typedef Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MatXT;
+  std::vector<std::vector<digitalIntegral<T>>> integrals;
+  MatXT dints_;
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  digitalIntegralMat(void)
+  {
+    for (int i = 0; i < 2; i++)
+    {
+      std::vector<digitalIntegral<T>> row;
+      integrals.push_back(row);
+      for (int j = 0; j < 1; j++)
+      {
+        integrals[i].push_back(digitalIntegral<T>());
+      }
+    }
+    dints_ = MatXT::Zero(2, 1);
+  }
+  digitalIntegralMat(const MatXT &x0)
+  {
+    for (int i = 0; i < x0.rows(); i++)
+    {
+      std::vector<digitalIntegral<T>> row;
+      integrals.push_back(row);
+      for (int j = 0; j < x0.cols(); j++)
+      {
+        integrals[i].push_back(digitalIntegral<T>(x0(i, j)));
+      }
+    }
+    dints_ = MatXT::Zero(x0.rows(), x0.cols());
+  }
+  MatXT calculate(const MatXT &val, const double Ts)
+  {
+    for (int i = 0; i < val.rows(); i++)
+    {
+      for (int j = 0; j <val.cols(); j++)
+      {
+        dints_(i, j) = integrals[i][j].calculate(val(i, j), Ts);
+      }
+    }
+    return dints_;
+  }
+};
+typedef digitalIntegralMat<double> digitalIntegralMatd;
+
+template <typename T>
 class dirtyDerivative
 {
 private:

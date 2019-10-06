@@ -79,6 +79,7 @@ public:
 // Linear Time Invariant System Simulation ===================================================================
 // ===========================================================================================================
 
+// TODO: initialization and relinearization methods that access the state space matrices directly ++++
 class LTIModelSISO
 {
 private:
@@ -89,13 +90,37 @@ private:
     MatrixXd D_;
     MatrixXd x_;
     RK4<MatrixXd, double> rk4_;
-    void createStateSpace(MatrixXd &x0, const MatrixXd &alpha_vals, const MatrixXd &beta_vals)
+    void createStateSpaceDenNum(MatrixXd &x0, const MatrixXd &alpha_vals, const MatrixXd &beta_vals)
     {
         if (alpha_vals.cols() == 1 && beta_vals.cols() == 1 &&
                 alpha_vals.rows() >= beta_vals.rows() && x0.rows() == alpha_vals.rows() - 1)
         {
             rk4_.setDynamics(&LTIModelSISO::f, this);
-            int n = x0.rows();
+            x_.resize(x0.rows(), 1);
+            x_ = x0;
+
+            reLinearizeDenNum(alpha_vals, beta_vals);
+        }
+    }
+    void f(MatrixXd &x_dot, MatrixXd &x, const double &u)
+    {
+        x_dot = A_ * x + B_ * u;
+    }
+public:
+    LTIModelSISO() : initialized_(false) {}
+    LTIModelSISO(MatrixXd &x0, const MatrixXd &alpha_vals, const MatrixXd &beta_vals)
+    {
+        createStateSpaceDenNum(x0, alpha_vals, beta_vals);
+    }
+    void setCoefficients(MatrixXd &x0, const MatrixXd &alpha_vals, const MatrixXd &beta_vals)
+    {
+        createStateSpaceDenNum(x0, alpha_vals, beta_vals);
+    }
+    void reLinearizeDenNum(const MatrixXd &alpha_vals, const MatrixXd &beta_vals)
+    {
+        if (alpha_vals.cols() == 1 && beta_vals.cols() == 1 && alpha_vals.rows() >= beta_vals.rows())
+        {
+            int n = alpha_vals.rows() - 1;
             int m = beta_vals.rows() - 1;
             MatrixXd beta_vals_buffered(n+1, 1);
             for (int i = 0; i <= n; i++)
@@ -105,8 +130,6 @@ private:
                 else
                     beta_vals_buffered(i, 0) = 0.0;
             }
-            x_.resize(n, 1);
-            x_ = x0;
             A_.resize(n, n);
             B_.resize(n, 1);
             C_.resize(1, n);
@@ -126,20 +149,8 @@ private:
 
             initialized_ = true;
         }
-    }
-    void f(MatrixXd &x_dot, MatrixXd &x, const double &u)
-    {
-        x_dot = A_ * x + B_ * u;
-    }
-public:
-    LTIModelSISO() : initialized_(false) {}
-    LTIModelSISO(MatrixXd &x0, const MatrixXd &alpha_vals, const MatrixXd &beta_vals)
-    {
-        createStateSpace(x0, alpha_vals, beta_vals);
-    }
-    void setCoefficients(MatrixXd &x0, const MatrixXd &alpha_vals, const MatrixXd &beta_vals)
-    {
-        createStateSpace(x0, alpha_vals, beta_vals);
+        else
+            initialized_ = false;
     }
     double run(const double &u, const double &dt)
     {

@@ -18,7 +18,7 @@ template <typename xT, typename uT>
 class RK4
 {
 private:
-    const boost::function<void(xT&, xT&, const uT&)> f_;
+    boost::function<void(xT&, xT&, const uT&)> f_;
     xT k1_;
     xT k2_;
     xT k3_;
@@ -29,24 +29,24 @@ private:
     bool initialized_;
 public:
     RK4() : initialized_(false) {}
-    RK4(boost::function<void(xT&, xT&, const uT&)> &f)
+    RK4(void (*f)(xT&, xT&, const uT&))
     {
         f_ = boost::bind(f, _1, _2, _3);
         initialized_ = true;
     }
     template <class C>
-    RK4(boost::function<void(xT&, xT&, const uT&)> &f, C *obj)
+    RK4(void (C::*f)(xT&, xT&, const uT&), C *obj)
     {
         f_ = boost::bind(f, obj, _1, _2, _3);
         initialized_ = true;
     }
-    void setDynamics(boost::function<void(xT&, xT&, const uT&)> &f)
+    void setDynamics(void (*f)(xT&, xT&, const uT&))
     {
         f_ = boost::bind(f, _1, _2, _3);
         initialized_ = true;
     }
     template <class C>
-    void setDynamics(boost::function<void(xT&, xT&, const uT&)> &f, C *obj) // VoidConstPtr &obj)
+    void setDynamics(void (C::*f)(xT&, xT&, const uT&), C *obj) // VoidConstPtr &obj)
     {
         f_ = boost::bind(f, obj, _1, _2, _3);
         initialized_ = true;

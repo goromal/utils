@@ -31,64 +31,64 @@ typedef Eigen::Matrix<double, 7, 7> Matrix7d;
 typedef Eigen::Matrix<double, 8, 8> Matrix8d;
 typedef Eigen::Matrix<double, 9, 9> Matrix9d;
 
-template<typename Derived>
-constexpr bool is_eigen_type_f(const Eigen::EigenBase<Derived> *) {
-    return true;
-}
-constexpr bool is_eigen_type_f(const double *) {
-    return false;
-}
-constexpr bool is_eigen_type_f(const void *) {
-    return false;
-}
+//template<typename Derived>
+//constexpr bool is_eigen_type_f(const Eigen::EigenBase<Derived> *) {
+//    return true;
+//}
+//constexpr bool is_eigen_type_f(const double *) {
+//    return false;
+//}
+//constexpr bool is_eigen_type_f(const void *) {
+//    return false;
+//}
 
-template<typename T>
-constexpr bool is_eigen_type = is_eigen_type_f(reinterpret_cast<T *>(NULL));
+//template<typename T>
+//constexpr bool is_eigen_type = is_eigen_type_f(reinterpret_cast<T *>(NULL));
 
 template<typename Derived>
-void genericSetZero(Eigen::MatrixBase<Derived> &mat)
+inline void genericSetZero(Eigen::MatrixBase<Derived> &mat)
 {
     mat.setZero();
 }
-void genericSetZero(double &val)
+inline void genericSetZero(double &val)
 {
     val = 0.0;
 }
 
-void genericSetZero(float &val)
+inline void genericSetZero(float &val)
 {
     val = 0.0;
 }
 template<typename Derived>
-Eigen::MatrixBase<Derived> genericElementwiseMultiply(const Eigen::MatrixBase<Derived> &A,
+inline Eigen::MatrixBase<Derived> genericElementwiseMultiply(const Eigen::MatrixBase<Derived> &A,
                                                       const Eigen::MatrixBase<Derived> &B)
 {
     return A.cwiseProduct(B);
 }
-double genericElementwiseMultiply(const double &a, const double &b)
+inline double genericElementwiseMultiply(const double &a, const double &b)
 {
     return a * b;
 }
-float genericElementwiseMultiply(const float &a, const float &b)
+inline float genericElementwiseMultiply(const float &a, const float &b)
 {
     return a * b;
 }
 template<typename Derived>
-Eigen::MatrixBase<Derived> genericElementwiseDivide(const Eigen::MatrixBase<Derived> &A,
+inline Eigen::MatrixBase<Derived> genericElementwiseDivide(const Eigen::MatrixBase<Derived> &A,
                                                     const Eigen::MatrixBase<Derived> &B)
 {
   return A.cwiseQuotient(B);
 }
-double genericElementwiseDivide(const double &a, const double &b)
+inline double genericElementwiseDivide(const double &a, const double &b)
 {
     return a / b;
 }
-float genericElementwiseDivide(const float &a, const float &b)
+inline float genericElementwiseDivide(const float &a, const float &b)
 {
     return a / b;
 }
 template<typename Derived>
-Eigen::MatrixBase<Derived> genericSat(const Eigen::MatrixBase<Derived> &unsat,
+inline Eigen::MatrixBase<Derived> genericSat(const Eigen::MatrixBase<Derived> &unsat,
                                       const Eigen::MatrixBase<Derived> &max)
 {
     Eigen::MatrixBase<Derived> sat;
@@ -103,24 +103,24 @@ Eigen::MatrixBase<Derived> genericSat(const Eigen::MatrixBase<Derived> &unsat,
     }
     return sat;
 }
-double genericSat(const double &unsat, const double &max)
+inline double genericSat(const double &unsat, const double &max)
 {
     return (unsat > max) ? max : (unsat < -1.0 * max) ? -1.0 * max : unsat;
 }
-float genericSat(const float &unsat, const float &max)
+inline float genericSat(const float &unsat, const float &max)
 {
     return (unsat > max) ? max : (unsat < -1.0 * max) ? -1.0 * max : unsat;
 }
 template<typename Derived>
-double genericNorm(const Eigen::MatrixBase<Derived> &mat)
+inline double genericNorm(const Eigen::MatrixBase<Derived> &mat)
 {
     return mat.norm();
 }
-double genericNorm(const double &val)
+inline double genericNorm(const double &val)
 {
     return fabs(val);
 }
-float genericNorm(const float &val)
+inline float genericNorm(const float &val)
 {
     return fabs(val);
 }

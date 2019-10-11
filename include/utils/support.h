@@ -31,6 +31,100 @@ typedef Eigen::Matrix<double, 7, 7> Matrix7d;
 typedef Eigen::Matrix<double, 8, 8> Matrix8d;
 typedef Eigen::Matrix<double, 9, 9> Matrix9d;
 
+template<typename Derived>
+constexpr bool is_eigen_type_f(const Eigen::EigenBase<Derived> *) {
+    return true;
+}
+constexpr bool is_eigen_type_f(const double *) {
+    return false;
+}
+constexpr bool is_eigen_type_f(const void *) {
+    return false;
+}
+
+template<typename T>
+constexpr bool is_eigen_type = is_eigen_type_f(reinterpret_cast<T *>(NULL));
+
+template<typename Derived>
+void genericSetZero(Eigen::MatrixBase<Derived> &mat)
+{
+    mat.setZero();
+}
+void genericSetZero(double &val)
+{
+    val = 0.0;
+}
+
+void genericSetZero(float &val)
+{
+    val = 0.0;
+}
+template<typename Derived>
+Eigen::MatrixBase<Derived> genericElementwiseMultiply(const Eigen::MatrixBase<Derived> &A,
+                                                      const Eigen::MatrixBase<Derived> &B)
+{
+    return A.cwiseProduct(B);
+}
+double genericElementwiseMultiply(const double &a, const double &b)
+{
+    return a * b;
+}
+float genericElementwiseMultiply(const float &a, const float &b)
+{
+    return a * b;
+}
+template<typename Derived>
+Eigen::MatrixBase<Derived> genericElementwiseDivide(const Eigen::MatrixBase<Derived> &A,
+                                                    const Eigen::MatrixBase<Derived> &B)
+{
+  return A.cwiseQuotient(B);
+}
+double genericElementwiseDivide(const double &a, const double &b)
+{
+    return a / b;
+}
+float genericElementwiseDivide(const float &a, const float &b)
+{
+    return a / b;
+}
+template<typename Derived>
+Eigen::MatrixBase<Derived> genericSat(const Eigen::MatrixBase<Derived> &unsat,
+                                      const Eigen::MatrixBase<Derived> &max)
+{
+    Eigen::MatrixBase<Derived> sat;
+    for (int i = 0; i < unsat.rows(); i++)
+    {
+        for (int j = 0; j < unsat.cols(); j++)
+        {
+            sat(i, j) = (unsat(i, j) > max(i, j)) ? max(i, j) :
+                        (unsat(i, j) < -1.0 * max(i, j)) ? -1.0 * max(i, j) :
+                        unsat(i, j);
+        }
+    }
+    return sat;
+}
+double genericSat(const double &unsat, const double &max)
+{
+    return (unsat > max) ? max : (unsat < -1.0 * max) ? -1.0 * max : unsat;
+}
+float genericSat(const float &unsat, const float &max)
+{
+    return (unsat > max) ? max : (unsat < -1.0 * max) ? -1.0 * max : unsat;
+}
+template<typename Derived>
+double genericNorm(const Eigen::MatrixBase<Derived> &mat)
+{
+    return mat.norm();
+}
+double genericNorm(const double &val)
+{
+    return fabs(val);
+}
+float genericNorm(const float &val)
+{
+    return fabs(val);
+}
+
 inline bool file_exists (const std::string& name) {
   struct stat buffer;
   return (stat (name.c_str(), &buffer) == 0);
@@ -272,201 +366,6 @@ inline T random(T max, T min)
 {
   T f = (T)rand() / RAND_MAX;
   return min + f * (max - min);
-}
-
-template <typename T>
-class digitalIntegral
-{
-private:
-    bool initialized_;
-    T integral_;
-    T val_prev_;
-public:
-    digitalIntegral(void)
-    {
-        integral_ = (T) 0.0;
-        resetCalculator();
-    }
-    digitalIntegral(const T x0)
-    {
-        integral_ = x0;
-        resetCalculator();
-    }
-    void resetCalculator()
-    {
-        initialized_ = false;
-        val_prev_ = (T) 0.0;
-    }
-    T calculate(const T &val, const double Ts)
-    {
-        if (initialized_)
-            integral_ += Ts / 2.0 * (val_prev_ + val);
-        else
-            initialized_ = true;
-        val_prev_ = val;
-        return integral_;
-    }
-};
-typedef digitalIntegral<double> digitalIntegrald;
-
-template <typename T>
-class digitalIntegralMat
-{
-private:
-  typedef Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MatXT;
-  std::vector<std::vector<digitalIntegral<T>>> integrals;
-  MatXT dints_;
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  digitalIntegralMat(void)
-  {
-    for (int i = 0; i < 2; i++)
-    {
-      std::vector<digitalIntegral<T>> row;
-      integrals.push_back(row);
-      for (int j = 0; j < 1; j++)
-      {
-        integrals[i].push_back(digitalIntegral<T>());
-      }
-    }
-    dints_ = MatXT::Zero(2, 1);
-  }
-  digitalIntegralMat(const MatXT &x0)
-  {
-    for (int i = 0; i < x0.rows(); i++)
-    {
-      std::vector<digitalIntegral<T>> row;
-      integrals.push_back(row);
-      for (int j = 0; j < x0.cols(); j++)
-      {
-        integrals[i].push_back(digitalIntegral<T>(x0(i, j)));
-      }
-    }
-    dints_ = MatXT::Zero(x0.rows(), x0.cols());
-  }
-  MatXT calculate(const MatXT &val, const double Ts)
-  {
-    for (int i = 0; i < val.rows(); i++)
-    {
-      for (int j = 0; j <val.cols(); j++)
-      {
-        dints_(i, j) = integrals[i][j].calculate(val(i, j), Ts);
-      }
-    }
-    return dints_;
-  }
-};
-typedef digitalIntegralMat<double> digitalIntegralMatd;
-
-template <typename T>
-class dirtyDerivative
-{
-private:
-  double sigma_;
-  bool initialized;
-  T deriv_curr_;
-  T deriv_prev_;
-  T val_prev_;
-public:
-  dirtyDerivative(void) : sigma_(0.05)
-  {
-    resetCalculator();
-  }
-  dirtyDerivative(const double sigma)
-  {
-    sigma_ = sigma;
-    resetCalculator();
-  }
-  void resetCalculator()
-  {
-    deriv_curr_ = (T) 0.0;
-    deriv_prev_ = (T) 0.0;
-    val_prev_ = (T) 0.0;
-    initialized = false;
-  }
-  T calculate(const T &val, const double Ts)
-  {
-    if (initialized)
-    {
-      deriv_curr_ = (2 * sigma_ - Ts) / (2 * sigma_ + Ts) * deriv_prev_ +
-                    2 / (2 * sigma_ + Ts) * (val - val_prev_);
-      deriv_prev_ = deriv_curr_;
-      val_prev_ = val;
-    }
-    else
-    {
-      deriv_curr_ = (T) 0.0;
-      deriv_prev_ = deriv_curr_;
-      val_prev_ = val;
-      initialized = true;
-    }
-    return deriv_curr_;
-  }
-};
-typedef dirtyDerivative<double> dirtyDerivatived;
-
-template <typename T>
-class dirtyDerivativeMat
-{
-private:
-  typedef Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MatXT;
-  std::vector<std::vector<dirtyDerivative<T>>> derivatives;
-  MatXT ddirs_;
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  dirtyDerivativeMat(void)
-  {
-    for (int i = 0; i < 2; i++)
-    {
-      std::vector<dirtyDerivative<T>> row;
-      derivatives.push_back(row);
-      for (int j = 0; j < 1; j++)
-      {
-        derivatives[i].push_back(dirtyDerivative<T>());
-      }
-    }
-    ddirs_ = MatXT::Zero(2, 1);
-  }
-  dirtyDerivativeMat(const MatXT &sigmas)
-  {
-    for (int i = 0; i < sigmas.rows(); i++)
-    {
-      std::vector<dirtyDerivative<T>> row;
-      derivatives.push_back(row);
-      for (int j = 0; j < sigmas.cols(); j++)
-      {
-        derivatives[i].push_back(dirtyDerivative<T>(sigmas(i, j)));
-      }
-    }
-    ddirs_ = MatXT::Zero(sigmas.rows(), sigmas.cols());
-  }
-  MatXT calculate(const MatXT &val, const double Ts)
-  {
-    for (int i = 0; i < val.rows(); i++)
-    {
-      for (int j = 0; j <val.cols(); j++)
-      {
-        ddirs_(i, j) = derivatives[i][j].calculate(val(i, j), Ts);
-      }
-    }
-    return ddirs_;
-  }
-};
-typedef dirtyDerivativeMat<double> dirtyDerivativeMatd;
-
-template<typename T>
-inline T wrap_angle_npi2pi(T theta)
-{
-  T ret_theta = theta;
-  if (theta > UTILS_PI)
-  {
-    ret_theta -= 2 * UTILS_PI;
-  }
-  else if (theta <= -UTILS_PI)
-  {
-    ret_theta += 2 * UTILS_PI;
-  }
-  return ret_theta;
 }
 
 } // end namespace utils

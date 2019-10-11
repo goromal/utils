@@ -4,11 +4,129 @@
 #include <math.h>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
+#include "support.h"
 //#include <cstdarg>
 
 using namespace Eigen;
+using namespace utils;
 
 namespace modeling {
+
+// ===========================================================================================================
+// Derivatives and Integrals =================================================================================
+// ===========================================================================================================
+
+// Must be with double, float, or Eigen type!
+template<typename T>
+class Integrator
+{
+private:
+    bool initialized_;
+    T integral_;
+    T val_prev_;
+public:
+    Integrator(void)
+    {
+        genericSetZero(integral_);
+        reset();
+    }
+    Integrator(const T x0)
+    {
+        integral_ = x0;
+        reset();
+    }
+    void init(const T x0)
+    {
+        integral_ = x0;
+        reset();
+    }
+    void setIntegral(const T x)
+    {
+        integral_ = x;
+    }
+    void reset()
+    {
+        initialized_ = false;
+        genericSetZero(val_prev_);
+    }
+    // Trapezoidal integration
+    T calculate(const T &val, const double Ts)
+    {
+        if (initialized_)
+            integral_ += Ts / 2.0 * (val_prev_ + val);
+        else
+            initialized_ = true;
+        val_prev_ = val;
+        return integral_;
+    }
+};
+
+// Must be with double, float, or Eigen type!
+template<typename T>
+class Differentiator
+{
+private:
+    double sigma_;
+    bool initialized_;
+    T deriv_curr_;
+    T deriv_prev_;
+    T val_prev_;
+public:
+    Differentiator(void) : sigma_(0.05)
+    {
+        reset();
+    }
+    Differentiator(const double sigma) : sigma_(sigma)
+    {
+        reset();
+    }
+    void init(const double sigma)
+    {
+        sigma_ = sigma;
+        reset();
+    }
+    void reset()
+    {
+        genericSetZero(deriv_curr_);
+        genericSetZero(deriv_prev_);
+        genericSetZero(val_prev_);
+        initialized_ = false;
+    }
+    // "Dirty derivative" differentiation
+    T calculate (const T &val, const double Ts)
+    {
+        if (initialized_)
+        {
+            deriv_curr_ = (2 * sigma_ - Ts) / (2 * sigma_ + Ts) * deriv_prev_ +
+                          2 / (2 * sigma_ + Ts) * (val - val_prev_);
+            deriv_prev_ = deriv_curr_;
+            val_prev_ = val;
+        }
+        else
+        {
+            genericSetZero(deriv_curr_);
+            deriv_prev_ = deriv_curr_;
+            val_prev_ = val;
+            initialized_ = true;
+        }
+        return deriv_curr_;
+    }
+};
+
+template<typename T>
+inline T wrap_angle_npi2pi(T theta)
+{
+  T ret_theta = theta;
+  if (theta > UTILS_PI)
+  {
+    ret_theta -= 2 * UTILS_PI;
+  }
+  else if (theta <= -UTILS_PI)
+  {
+    ret_theta += 2 * UTILS_PI;
+  }
+  return ret_theta;
+}
 
 // ===========================================================================================================
 // Fourth order Runge-Kutta integration ======================================================================

@@ -80,6 +80,14 @@ public:
         max_ = max;
         differentiator_.init(sigma);
     }
+    void reset()
+    {
+        T integralVal;
+        genericSetZero(integralVal);
+        integrator_.init(integralVal);
+        integrator_.reset();
+        differentiator_.reset();
+    }
     T run(const double dt, T x, T x_c, bool update_integrator)
     {
         T xdot;
